@@ -1,7 +1,13 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
-import Login from './pages/Login'
+import AppShell from './components/layout/AppShell'
+import Login    from './pages/Login'
+import Dashboard from './pages/Dashboard'
+import Habits   from './pages/Habits'
+import Goals    from './pages/Goals'
+import Journal  from './pages/Journal'
+import Progress from './pages/Progress'
 
 export default function App() {
   return (
@@ -9,15 +15,17 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/*" element={
+          <Route path="/" element={
             <ProtectedRoute>
-              <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
-                <h1 className="text-4xl font-black tracking-widest">
-                  You are logged in! ✅
-                </h1>
-              </div>
+              <AppShell />
             </ProtectedRoute>
-          } />
+          }>
+            <Route index        element={<Dashboard />} />
+            <Route path="habits"   element={<Habits />}    />
+            <Route path="goals"    element={<Goals />}     />
+            <Route path="journal"  element={<Journal />}   />
+            <Route path="progress" element={<Progress />}  />
+          </Route>
         </Routes>
       </BrowserRouter>
     </AuthProvider>

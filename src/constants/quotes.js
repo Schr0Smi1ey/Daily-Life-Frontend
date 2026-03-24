@@ -1,0 +1,16 @@
+export const QUOTES = [
+  { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
+  { text: "We are what we repeatedly do. Excellence is not an act but a habit.", author: "Aristotle" },
+  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+  { text: "Don't count the days. Make the days count.", author: "Muhammad Ali" },
+  { text: "You don't rise to the level of your goals, you fall to the level of your systems.", author: "James Clear" },
+  { text: "Small daily improvements over time lead to stunning results.", author: "Robin Sharma" },
+  { text: "A year from now you may wish you had started today.", author: "Karen Lamb" },
+  { text: "Do something today that your future self will thank you for.", author: "Sean Patrick Flanery" },
+  { text: "Success is the sum of small efforts repeated day in and day out.", author: "Robert Collier" },
+  { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+  { text: "Push yourself because no one else is going to do it for you.", author: "Unknown" },
+  { text: "Great things never come from comfort zones.", author: "Unknown" },
+  { text: "Dream it. Wish it. Do it.", author: "Unknown" },
+  { text: "Work hard in silence. Let success make the noise.", author: "Unknown" },
+]
