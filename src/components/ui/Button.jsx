@@ -5,8 +5,8 @@ export default function Button({
   const base = 'font-semibold rounded-xl transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed'
 
   const variants = {
-    accent:  'bg-orange-500 hover:bg-orange-400 text-black',
-    ghost:   'bg-transparent border border-white/10 hover:border-white/30 text-zinc-400 hover:text-white',
+    accent:  'bg-[var(--color-primary)] hover:opacity-90 text-black',
+    ghost:   'bg-transparent border border-white/10 hover:border-white/30 text-zinc-400 hover:text-white dark:text-zinc-400 dark:hover:text-white',
     danger:  'bg-transparent border border-red-500/40 hover:bg-red-500 text-red-400 hover:text-white',
     success: 'bg-transparent border border-green-500/40 hover:bg-green-500 text-green-400 hover:text-white',
   }

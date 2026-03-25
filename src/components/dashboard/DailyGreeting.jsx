@@ -14,8 +14,8 @@ export default function DailyGreeting() {
   return (
     <div className="mb-2">
       <h2 className="text-3xl font-black text-white tracking-wide">
-        {greeting}, <span className="text-orange-500">{name}.</span>
-      </h2>
+  {greeting}, <span style={{ color: 'var(--color-primary)' }}>{name}.</span>
+</h2>
       <p className="text-zinc-500 text-sm mt-1">
         {new Date().toLocaleDateString('en-US', {
           weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'

@@ -1,1 +1,20 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --color-primary:     #f97316;
+  --color-primary-rgb: 249, 115, 22;
+}
+
+/* Light mode base */
+body {
+  background-color: #f4f4f5;
+  color:            #09090b;
+}
+
+/* Dark mode base */
+.dark body {
+  background-color: #09090b;
+  color:            #fafafa;
+}
