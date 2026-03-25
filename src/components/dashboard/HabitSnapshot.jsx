@@ -1,23 +1,30 @@
-import { useNavigate } from 'react-router-dom'
-import ProgressBar from '../ui/ProgressBar'
-import ConfettiBlast from '../ui/ConfettiBlast'
+import { useNavigate } from "react-router-dom";
+import ProgressBar from "../ui/ProgressBar";
+import ConfettiBlast from "../ui/ConfettiBlast";
 
 export default function HabitSnapshot({ habits = [] }) {
-  const navigate = useNavigate()
-  const today = new Date().toISOString().split('T')[0]
+  const navigate = useNavigate();
+  const today = new Date().toISOString().split("T")[0];
 
-  const total     = habits.length
-  const completed = habits.filter(h => h.checkins?.some(c => c.date === today)).length
-  const allDone   = total > 0 && completed === total
-  const pct       = total ? Math.round(completed / total * 100) : 0
+  const total = habits.length;
+  const completed = habits.filter((h) =>
+    h.checkins?.some((c) => c.date === today),
+  ).length;
+  const allDone = total > 0 && completed === total;
+  const pct = total ? Math.round((completed / total) * 100) : 0;
 
   return (
     <>
       <ConfettiBlast trigger={allDone} />
 
       <div
-        className="bg-zinc-900 border border-white/10 rounded-2xl p-5 cursor-pointer hover:border-orange-500/30 transition"
-        onClick={() => navigate('/habits')}
+        className="bg-zinc-900 border border-white/10 rounded-2xl p-5 cursor-pointer transition"
+        style={{ borderColor: "var(--color-primary)" }}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.borderColor = "var(--color-primary)")
+        }
+        onMouseLeave={(e) => (e.currentTarget.style.borderColor = "")}
+        onClick={() => navigate("/habits")}
       >
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs text-zinc-500 uppercase tracking-widest">
@@ -37,17 +44,16 @@ export default function HabitSnapshot({ habits = [] }) {
 
         <ProgressBar
           value={pct}
-          color={allDone ? 'green' : 'orange'}
+          color={allDone ? "green" : "primary"}
           height="h-2"
         />
 
         <p className="text-zinc-600 text-xs mt-2">
           {total === 0
-            ? 'No habits yet — add your first one'
-            : `${total - completed} remaining today`
-          }
+            ? "No habits yet — add your first one"
+            : `${total - completed} remaining today`}
         </p>
       </div>
     </>
-  )
+  );
 }

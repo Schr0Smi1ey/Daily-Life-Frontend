@@ -58,7 +58,10 @@ export default function ForgotPassword({ onBack }) {
       <div className="mb-4">
         <input
           type="email"
-          className="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-orange-500 transition"
+          className="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none transition"
+          style={{ borderColor: "var(--color-primary)" }}
+          onFocus={(e) => (e.target.style.borderColor = "var(--color-primary)")}
+          onBlur={(e) => (e.target.style.borderColor = "")}
           placeholder="your@email.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -66,7 +69,12 @@ export default function ForgotPassword({ onBack }) {
         />
       </div>
 
-      <Button onClick={handleSubmit} disabled={loading} className="w-full mb-4">
+      <Button
+        onClick={handleSubmit}
+        disabled={loading}
+        className="w-full mb-4"
+        style={{ backgroundColor: "var(--color-primary)" }}
+      >
         {loading ? "Sending..." : "Send Reset Link"}
       </Button>
 

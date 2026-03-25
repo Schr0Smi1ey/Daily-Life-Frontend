@@ -1,35 +1,40 @@
-import { useState } from 'react'
-import PageHeader from '../components/layout/PageHeader'
-import Button from '../components/ui/Button'
-import EmptyState from '../components/ui/EmptyState'
-import Spinner from '../components/ui/Spinner'
-import GoalCard from '../components/goals/GoalCard'
-import AddGoalModal from '../components/goals/AddGoalModal'
-import GoalStatusTabs from '../components/goals/GoalStatusTabs'
-import useGoals from '../hooks/useGoals'
+import { useState } from "react";
+import PageHeader from "../components/layout/PageHeader";
+import Button from "../components/ui/Button";
+import EmptyState from "../components/ui/EmptyState";
+import Spinner from "../components/ui/Spinner";
+import GoalCard from "../components/goals/GoalCard";
+import AddGoalModal from "../components/goals/AddGoalModal";
+import GoalStatusTabs from "../components/goals/GoalStatusTabs";
+import useGoals from "../hooks/useGoals";
 
 export default function Goals() {
   const {
-    goals, loading,
-    createGoal, updateGoal, deleteGoal,
-    addMilestone, toggleMilestone, deleteMilestone
-  } = useGoals()
+    goals,
+    loading,
+    createGoal,
+    updateGoal,
+    deleteGoal,
+    addMilestone,
+    toggleMilestone,
+    deleteMilestone,
+  } = useGoals();
 
-  const [showAdd,    setShowAdd]    = useState(false)
-  const [statusTab,  setStatusTab]  = useState('all')
+  const [showAdd, setShowAdd] = useState(false);
+  const [statusTab, setStatusTab] = useState("all");
 
-  const filtered = goals.filter(g =>
-    statusTab === 'all' ? true : g.status === statusTab
-  )
+  const filtered = goals.filter((g) =>
+    statusTab === "all" ? true : g.status === statusTab,
+  );
 
   const counts = {
-    all:       goals.length,
-    active:    goals.filter(g => g.status === 'active').length,
-    paused:    goals.filter(g => g.status === 'paused').length,
-    completed: goals.filter(g => g.status === 'completed').length,
-  }
+    all: goals.length,
+    active: goals.filter((g) => g.status === "active").length,
+    paused: goals.filter((g) => g.status === "paused").length,
+    completed: goals.filter((g) => g.status === "completed").length,
+  };
 
-  if (loading) return <Spinner />
+  if (loading) return <Spinner />;
 
   return (
     <div>
@@ -49,15 +54,15 @@ export default function Goals() {
         <EmptyState
           icon="◈"
           message={
-            statusTab === 'all'
+            statusTab === "all"
               ? "No goals yet. Set your first one!"
               : `No ${statusTab} goals.`
           }
-          actionLabel={statusTab === 'all' ? "Create a Goal" : undefined}
-          onAction={statusTab === 'all' ? () => setShowAdd(true) : undefined}
+          actionLabel={statusTab === "all" ? "Create a Goal" : undefined}
+          onAction={statusTab === "all" ? () => setShowAdd(true) : undefined}
         />
       ) : (
-        filtered.map(goal => (
+        filtered.map((goal) => (
           <GoalCard
             key={goal._id}
             goal={goal}
@@ -76,5 +81,5 @@ export default function Goals() {
         onCreate={createGoal}
       />
     </div>
-  )
+  );
 }

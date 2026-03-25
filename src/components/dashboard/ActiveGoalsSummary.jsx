@@ -1,15 +1,20 @@
-import { useNavigate } from 'react-router-dom'
-import ProgressBar from '../ui/ProgressBar'
-import EmptyState from '../ui/EmptyState'
+import { useNavigate } from "react-router-dom";
+import ProgressBar from "../ui/ProgressBar";
+import EmptyState from "../ui/EmptyState";
 
 export default function ActiveGoalsSummary({ goals = [] }) {
-  const navigate  = useNavigate()
-  const active    = goals.filter(g => g.status === 'active').slice(0, 3)
+  const navigate = useNavigate();
+  const active = goals.filter((g) => g.status === "active").slice(0, 3);
 
   return (
     <div
-      className="bg-zinc-900 border border-white/10 rounded-2xl p-5 cursor-pointer hover:border-orange-500/30 transition"
-      onClick={() => navigate('/goals')}
+      className="bg-zinc-900 border border-white/10 rounded-2xl p-5 cursor-pointer transition"
+      style={{ borderColor: "var(--color-primary)" }}
+      onMouseEnter={(e) =>
+        (e.currentTarget.style.borderColor = "var(--color-primary)")
+      }
+      onMouseLeave={(e) => (e.currentTarget.style.borderColor = "")}
+      onClick={() => navigate("/goals")}
     >
       <p className="text-xs text-zinc-500 uppercase tracking-widest mb-4">
         Active Goals
@@ -21,10 +26,10 @@ export default function ActiveGoalsSummary({ goals = [] }) {
         </p>
       ) : (
         <div className="flex flex-col gap-4">
-          {active.map(goal => {
-            const total    = goal.milestones?.length || 0
-            const done     = goal.milestones?.filter(m => m.done).length || 0
-            const progress = total ? Math.round(done / total * 100) : 0
+          {active.map((goal) => {
+            const total = goal.milestones?.length || 0;
+            const done = goal.milestones?.filter((m) => m.done).length || 0;
+            const progress = total ? Math.round((done / total) * 100) : 0;
 
             return (
               <div key={goal._id}>
@@ -32,21 +37,25 @@ export default function ActiveGoalsSummary({ goals = [] }) {
                   <span className="text-sm text-white font-medium truncate pr-2">
                     {goal.title}
                   </span>
-                  <span className="text-xs font-bold text-orange-500 flex-shrink-0">
+                  <span
+                    className="text-xs font-bold flex-shrink-0"
+                    style={{ color: "var(--color-primary)" }}
+                  >
                     {progress}%
                   </span>
                 </div>
-                <ProgressBar value={progress} />
+                <ProgressBar value={progress} color="primary" />
               </div>
-            )
+            );
           })}
-          {goals.filter(g => g.status === 'active').length > 3 && (
+          {goals.filter((g) => g.status === "active").length > 3 && (
             <p className="text-xs text-zinc-600 text-center">
-              +{goals.filter(g => g.status === 'active').length - 3} more goals
+              +{goals.filter((g) => g.status === "active").length - 3} more
+              goals
             </p>
           )}
         </div>
       )}
     </div>
-  )
+  );
 }

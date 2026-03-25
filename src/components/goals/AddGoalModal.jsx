@@ -1,39 +1,47 @@
-import { useState } from 'react'
-import Modal from '../ui/Modal'
-import Button from '../ui/Button'
+import { useState } from "react";
+import Modal from "../ui/Modal";
+import Button from "../ui/Button";
 
 export default function AddGoalModal({ isOpen, onClose, onCreate }) {
   const [form, setForm] = useState({
-    title: '', description: '', targetDays: 30, startDate: ''
-  })
+    title: "",
+    description: "",
+    targetDays: 30,
+    startDate: "",
+  });
 
-  const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }))
+  const set = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = new Date().toISOString().split("T")[0];
 
   const handleSubmit = async () => {
-    if (!form.title.trim()) return
+    if (!form.title.trim()) return;
     await onCreate({
       ...form,
-      startDate: form.startDate || today
-    })
-    setForm({ title: '', description: '', targetDays: 30, startDate: '' })
-    onClose()
-  }
+      startDate: form.startDate || today,
+    });
+    setForm({ title: "", description: "", targetDays: 30, startDate: "" });
+    onClose();
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="NEW GOAL">
-
       {/* Title */}
       <div className="mb-4">
         <label className="text-xs text-zinc-500 uppercase tracking-widest block mb-2">
           Goal Title
         </label>
         <input
-          className="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-orange-500 transition"
+          className="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none transition"
+          style={{
+            borderColor: "var(--color-primary)",
+            "--tw-ring-color": "var(--color-primary)",
+          }}
+          onFocus={(e) => (e.target.style.borderColor = "var(--color-primary)")}
+          onBlur={(e) => (e.target.style.borderColor = "")}
           placeholder="e.g. Run a 5K"
           value={form.title}
-          onChange={e => set('title', e.target.value)}
+          onChange={(e) => set("title", e.target.value)}
         />
       </div>
 
@@ -43,10 +51,16 @@ export default function AddGoalModal({ isOpen, onClose, onCreate }) {
           Description
         </label>
         <input
-          className="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-orange-500 transition"
+          className="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none transition"
+          style={{
+            borderColor: "var(--color-primary)",
+            "--tw-ring-color": "var(--color-primary)",
+          }}
+          onFocus={(e) => (e.target.style.borderColor = "var(--color-primary)")}
+          onBlur={(e) => (e.target.style.borderColor = "")}
           placeholder="What does success look like?"
           value={form.description}
-          onChange={e => set('description', e.target.value)}
+          onChange={(e) => set("description", e.target.value)}
         />
       </div>
 
@@ -56,15 +70,20 @@ export default function AddGoalModal({ isOpen, onClose, onCreate }) {
           Target Days
         </label>
         <div className="flex gap-2 mb-2">
-          {[7, 14, 21, 30, 60, 90].map(d => (
+          {[7, 14, 21, 30, 60, 90].map((d) => (
             <button
               key={d}
-              onClick={() => set('targetDays', d)}
+              onClick={() => set("targetDays", d)}
               className={`flex-1 py-2 rounded-lg text-xs font-semibold transition ${
                 form.targetDays === d
-                  ? 'bg-orange-500 text-black'
-                  : 'bg-zinc-800 text-zinc-400 hover:text-white'
+                  ? "text-black"
+                  : "bg-zinc-800 text-zinc-400 hover:text-white"
               }`}
+              style={
+                form.targetDays === d
+                  ? { backgroundColor: "var(--color-primary)", color: "white" }
+                  : {}
+              }
             >
               {d}d
             </button>
@@ -72,10 +91,16 @@ export default function AddGoalModal({ isOpen, onClose, onCreate }) {
         </div>
         <input
           type="number"
-          className="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-orange-500 transition"
+          className="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none transition"
+          style={{
+            borderColor: "var(--color-primary)",
+            "--tw-ring-color": "var(--color-primary)",
+          }}
+          onFocus={(e) => (e.target.style.borderColor = "var(--color-primary)")}
+          onBlur={(e) => (e.target.style.borderColor = "")}
           placeholder="Or enter custom days"
           value={form.targetDays}
-          onChange={e => set('targetDays', parseInt(e.target.value) || 30)}
+          onChange={(e) => set("targetDays", parseInt(e.target.value) || 30)}
         />
       </div>
 
@@ -86,17 +111,26 @@ export default function AddGoalModal({ isOpen, onClose, onCreate }) {
         </label>
         <input
           type="date"
-          className="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-orange-500 transition"
+          className="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none transition"
+          style={{
+            borderColor: "var(--color-primary)",
+            "--tw-ring-color": "var(--color-primary)",
+          }}
+          onFocus={(e) => (e.target.style.borderColor = "var(--color-primary)")}
+          onBlur={(e) => (e.target.style.borderColor = "")}
           value={form.startDate || today}
-          onChange={e => set('startDate', e.target.value)}
+          onChange={(e) => set("startDate", e.target.value)}
         />
       </div>
 
       <div className="flex gap-3">
-        <Button onClick={handleSubmit} className="flex-1">Create Goal</Button>
-        <Button onClick={onClose} variant="ghost">Cancel</Button>
+        <Button onClick={handleSubmit} className="flex-1">
+          Create Goal
+        </Button>
+        <Button onClick={onClose} variant="ghost">
+          Cancel
+        </Button>
       </div>
-
     </Modal>
-  )
+  );
 }
