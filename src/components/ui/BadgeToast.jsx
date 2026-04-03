@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { BADGES } from "../../constants/badges";
 
 export default function BadgeToast({ newBadgeKey, onDone }) {
@@ -7,42 +8,70 @@ export default function BadgeToast({ newBadgeKey, onDone }) {
 
   useEffect(() => {
     if (!newBadgeKey) return;
+
     setVisible(true);
+
     const t = setTimeout(() => {
       setVisible(false);
       setTimeout(onDone, 300);
     }, 3500);
+
     return () => clearTimeout(t);
-  }, [newBadgeKey]);
+  }, [newBadgeKey, onDone]);
 
   if (!badge) return null;
 
   return (
-    <div
-      className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${
-        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-      }`}
-    >
-      <div
-        className="bg-zinc-900 rounded-2xl px-5 py-4 flex items-center gap-4 shadow-xl"
-        style={{
-          border: `1px solid var(--color-primary)`,
-          borderColor: "var(--color-primary)",
-          opacity: 0.4,
-        }}
-      >
-        <div className="text-4xl">{badge.icon}</div>
-        <div>
-          <p
-            className="text-xs font-bold uppercase tracking-widest mb-0.5"
-            style={{ color: "var(--color-primary)" }}
-          >
-            Badge Unlocked!
-          </p>
-          <p className="text-white font-bold text-sm">{badge.label}</p>
-          <p className="text-zinc-500 text-xs">{badge.desc}</p>
-        </div>
-      </div>
-    </div>
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ opacity: 0, y: 40, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.96 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="fixed bottom-6 right-6 z-50 w-[320px] max-w-[90vw]"
+        >
+          <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.2)] dark:border-white/10 dark:bg-zinc-900/95">
+            {/* glow */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute -top-6 -right-6 h-20 w-20 rounded-full bg-[var(--color-primary)]/15 blur-2xl" />
+            </div>
+
+            <div className="relative flex items-center gap-4">
+              {/* icon */}
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-primary)]/10 text-2xl">
+                {badge.icon}
+              </div>
+
+              {/* content */}
+              <div className="min-w-0">
+                <p
+                  className="text-[11px] font-semibold uppercase tracking-[0.25em]"
+                  style={{ color: "var(--color-primary)" }}
+                >
+                  Achievement unlocked
+                </p>
+
+                <p className="mt-0.5 text-sm font-semibold text-zinc-900 dark:text-white">
+                  {badge.label}
+                </p>
+
+                <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                  {badge.desc}
+                </p>
+              </div>
+            </div>
+
+            {/* progress bar timer */}
+            <motion.div
+              initial={{ width: "100%" }}
+              animate={{ width: "0%" }}
+              transition={{ duration: 3.5, ease: "linear" }}
+              className="absolute bottom-0 left-0 h-[2px] bg-[var(--color-primary)]"
+            />
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

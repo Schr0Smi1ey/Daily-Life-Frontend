@@ -1,80 +1,88 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import MoodSelector from "./MoodSelector";
 
 export default function EditEntryModal({ isOpen, onClose, entry, onUpdate }) {
-  const [form, setForm] = useState({ mood: 3, text: "", gratitude: "" });
+  const [form, setForm] = useState({
+    mood: 3,
+    text: "",
+    gratitude: "",
+  });
 
   useEffect(() => {
-    if (entry)
+    if (entry) {
       setForm({
         mood: entry.mood || 3,
         text: entry.text || "",
         gratitude: entry.gratitude || "",
       });
+    }
   }, [entry]);
 
   const set = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
 
   const handleSubmit = async () => {
-    if (!form.text.trim()) return;
-    await onUpdate(entry._id, form);
+    if (!form.text.trim() || !entry?._id) return;
+
+    await onUpdate(entry._id, {
+      ...form,
+      text: form.text.trim(),
+      gratitude: form.gratitude.trim(),
+    });
+
     onClose();
   };
 
+  const fieldClassName =
+    "w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[rgba(var(--color-primary-rgb),0.12)] dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:placeholder:text-zinc-500";
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="EDIT ENTRY">
-      {/* Mood */}
-      <div className="mb-5">
-        <label className="text-xs text-zinc-500 uppercase tracking-widest block mb-3">
-          How are you feeling?
-        </label>
-        <MoodSelector value={form.mood} onChange={(val) => set("mood", val)} />
-      </div>
+    <Modal isOpen={isOpen} onClose={onClose} title="Edit Entry">
+      <div className="space-y-5">
+        <div>
+          <label className="mb-3 block text-xs uppercase tracking-widest text-zinc-500">
+            How are you feeling?
+          </label>
+          <MoodSelector
+            value={form.mood}
+            onChange={(val) => set("mood", val)}
+          />
+        </div>
 
-      {/* Text */}
-      <div className="mb-4">
-        <label className="text-xs text-zinc-500 uppercase tracking-widest block mb-2">
-          What's on your mind?
-        </label>
-        <textarea
-          className="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none transition resize-none"
-          style={{ borderColor: "var(--color-primary)" }}
-          onFocus={(e) => (e.target.style.borderColor = "var(--color-primary)")}
-          onBlur={(e) => (e.target.style.borderColor = "")}
-          rows={5}
-          value={form.text}
-          onChange={(e) => set("text", e.target.value)}
-        />
-      </div>
+        <div>
+          <label className="mb-2 block text-xs uppercase tracking-widest text-zinc-500">
+            What&apos;s on your mind?
+          </label>
+          <textarea
+            rows={5}
+            className={`${fieldClassName} resize-none`}
+            placeholder="Reflect on your day, wins, challenges, lessons..."
+            value={form.text}
+            onChange={(e) => set("text", e.target.value)}
+          />
+        </div>
 
-      {/* Gratitude */}
-      <div className="mb-6">
-        <label className="text-xs text-zinc-500 uppercase tracking-widest block mb-2">
-          One thing you're grateful for
-        </label>
-        <input
-          className="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none transition"
-          style={{ borderColor: "var(--color-primary)" }}
-          onFocus={(e) => (e.target.style.borderColor = "var(--color-primary)")}
-          onBlur={(e) => (e.target.style.borderColor = "")}
-          value={form.gratitude}
-          onChange={(e) => set("gratitude", e.target.value)}
-        />
-      </div>
+        <div>
+          <label className="mb-2 block text-xs uppercase tracking-widest text-zinc-500">
+            One thing you&apos;re grateful for
+          </label>
+          <input
+            className={fieldClassName}
+            placeholder="Today I’m grateful for..."
+            value={form.gratitude}
+            onChange={(e) => set("gratitude", e.target.value)}
+          />
+        </div>
 
-      <div className="flex gap-3">
-        <Button
-          onClick={handleSubmit}
-          className="flex-1"
-          style={{ backgroundColor: "var(--color-primary)" }}
-        >
-          Save Changes
-        </Button>
-        <Button onClick={onClose} variant="ghost">
-          Cancel
-        </Button>
+        <div className="flex gap-3 pt-1">
+          <Button onClick={handleSubmit} className="flex-1">
+            Save Changes
+          </Button>
+          <Button onClick={onClose} variant="ghost">
+            Cancel
+          </Button>
+        </div>
       </div>
     </Modal>
   );

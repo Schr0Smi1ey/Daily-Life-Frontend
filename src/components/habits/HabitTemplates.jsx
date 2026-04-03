@@ -19,7 +19,12 @@ export default function HabitTemplates({
     });
   }, []);
 
-  if (loading) return <Spinner />;
+  if (loading)
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Spinner />
+      </div>
+    );
 
   const pack = templates[active];
 

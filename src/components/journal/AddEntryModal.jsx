@@ -1,7 +1,14 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import MoodSelector from "./MoodSelector";
+
+const initialForm = {
+  mood: 3,
+  text: "",
+  gratitude: "",
+};
 
 export default function AddEntryModal({
   isOpen,
@@ -9,90 +16,133 @@ export default function AddEntryModal({
   onCreate,
   existingDates = [],
 }) {
-  const today = new Date().toISOString().split("T")[0];
+  const today = useMemo(() => new Date().toISOString().split("T")[0], []);
   const alreadyToday = existingDates.includes(today);
 
-  const [form, setForm] = useState({
-    mood: 3,
-    text: "",
-    gratitude: "",
-  });
+  const [form, setForm] = useState(initialForm);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const set = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
+  const setField = (key, value) =>
+    setForm((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+
+  useEffect(() => {
+    if (!isOpen) {
+      setForm(initialForm);
+      setIsSubmitting(false);
+    }
+  }, [isOpen]);
+
+  const canSubmit = form.text.trim().length > 0 && !isSubmitting;
 
   const handleSubmit = async () => {
-    if (!form.text.trim()) return;
-    await onCreate({ ...form, date: today });
-    setForm({ mood: 3, text: "", gratitude: "" });
-    onClose();
+    if (!canSubmit) return;
+
+    try {
+      setIsSubmitting(true);
+      await onCreate({
+        ...form,
+        text: form.text.trim(),
+        gratitude: form.gratitude.trim(),
+        date: today,
+      });
+      setForm(initialForm);
+      onClose();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  const fieldClassName =
+    "w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[rgba(var(--color-primary-rgb),0.12)] dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:placeholder:text-zinc-500";
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="NEW ENTRY">
-      {alreadyToday && (
-        <div
-          className="rounded-xl px-4 py-3 mb-4"
-          style={{
-            backgroundColor: "var(--color-primary)",
-            borderColor: "var(--color-primary)",
-            opacity: 0.1,
-          }}
+      <div className="space-y-6">
+        <AnimatePresence>
+          {alreadyToday && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="rounded-2xl border border-[rgba(var(--color-primary-rgb),0.22)] bg-[rgba(var(--color-primary-rgb),0.08)] px-4 py-3"
+            >
+              <p className="text-xs leading-relaxed text-[var(--color-primary)]">
+                You already have an entry for today. Creating another one will
+                be saved separately.
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.02 }}
         >
-          <p style={{ color: "var(--color-primary)" }} className="text-xs">
-            You already have an entry for today. Creating another will be saved
-            separately.
-          </p>
-        </div>
-      )}
+          <label className="mb-3 block text-xs uppercase tracking-widest text-zinc-500">
+            How are you feeling?
+          </label>
+          <MoodSelector
+            value={form.mood}
+            onChange={(value) => setField("mood", value)}
+          />
+        </motion.div>
 
-      {/* Mood */}
-      <div className="mb-5">
-        <label className="text-xs text-zinc-500 uppercase tracking-widest block mb-3">
-          How are you feeling?
-        </label>
-        <MoodSelector value={form.mood} onChange={(val) => set("mood", val)} />
-      </div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.06 }}
+        >
+          <label className="mb-2 block text-xs uppercase tracking-widest text-zinc-500">
+            What&apos;s on your mind?
+          </label>
+          <textarea
+            rows={6}
+            className={`${fieldClassName} resize-none`}
+            placeholder="Reflect on your day, wins, challenges, lessons..."
+            value={form.text}
+            onChange={(e) => setField("text", e.target.value)}
+          />
+        </motion.div>
 
-      {/* Text */}
-      <div className="mb-4">
-        <label className="text-xs text-zinc-500 uppercase tracking-widest block mb-2">
-          What's on your mind?
-        </label>
-        <textarea
-          className="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none transition resize-none"
-          style={{ borderColor: "var(--color-primary)" }}
-          onFocus={(e) => (e.target.style.borderColor = "var(--color-primary)")}
-          onBlur={(e) => (e.target.style.borderColor = "")}
-          placeholder="Reflect on your day, wins, challenges, lessons..."
-          rows={5}
-          value={form.text}
-          onChange={(e) => set("text", e.target.value)}
-        />
-      </div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <label className="mb-2 block text-xs uppercase tracking-widest text-zinc-500">
+            One thing you&apos;re grateful for
+          </label>
+          <input
+            className={fieldClassName}
+            placeholder="Today I’m grateful for..."
+            value={form.gratitude}
+            onChange={(e) => setField("gratitude", e.target.value)}
+          />
+        </motion.div>
 
-      {/* Gratitude */}
-      <div className="mb-6">
-        <label className="text-xs text-zinc-500 uppercase tracking-widest block mb-2">
-          One thing you're grateful for
-        </label>
-        <input
-          className="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none transition"
-          style={{ borderColor: "var(--color-primary)" }}
-          onFocus={(e) => (e.target.style.borderColor = "var(--color-primary)")}
-          onBlur={(e) => (e.target.style.borderColor = "")}
-          placeholder="Today I'm grateful for..."
-          value={form.gratitude}
-          onChange={(e) => set("gratitude", e.target.value)}
-        />
-      </div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.14 }}
+          className="flex gap-3"
+        >
+          <Button
+            onClick={handleSubmit}
+            className="flex-1"
+            disabled={!canSubmit}
+            loading={isSubmitting}
+          >
+            Save Entry
+          </Button>
 
-      <div className="flex gap-3">
-        <Button onClick={handleSubmit} className="flex-1">
-          Save Entry
-        </Button>
-        <Button onClick={onClose} variant="ghost">
-          Cancel
-        </Button>
+          <Button onClick={onClose} variant="ghost" disabled={isSubmitting}>
+            Cancel
+          </Button>
+        </motion.div>
       </div>
     </Modal>
   );

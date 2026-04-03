@@ -1,192 +1,257 @@
-import { useState } from "react";
-import ProgressBar from "../ui/ProgressBar";
+import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import Button from "../ui/Button";
-import MilestoneItem from "./MilestoneItem";
+import ProgressBar from "../ui/ProgressBar";
+import GoalConfirmModal from "./GoalConfirmModal";
 
 export default function GoalCard({
   goal,
   onDelete,
   onUpdateStatus,
-  onAddMilestone,
-  onToggleMilestone,
-  onDeleteMilestone,
+  onLogDay,
+  onUnlogDay,
+  onDuplicate,
+  onArchive,
+  onUnarchive,
+  isArchived = false,
 }) {
-  const [newMs, setNewMs] = useState("");
-  const [showMs, setShowMs] = useState(false);
-  const [addingMs, setAddingMs] = useState(false);
+  const navigate = useNavigate();
 
-  // Progress
-  const total = goal.milestones?.length || 0;
-  const done = goal.milestones?.filter((m) => m.done).length || 0;
-  const progress = total
-    ? Math.round((done / total) * 100)
-    : goal.status === "completed"
-      ? 100
-      : 0;
+  const [logging, setLogging] = useState(false);
+  const [actualInput, setActualInput] = useState("");
+  const [showLog, setShowLog] = useState(false);
+  const [confirmType, setConfirmType] = useState(null);
+  const [pulse, setPulse] = useState(false);
 
-  // Deadline warning
-  const deadlineWarning = (() => {
-    if (!goal.startDate || !goal.targetDays) return null;
-    const end = new Date(goal.startDate);
-    end.setDate(end.getDate() + goal.targetDays);
-    const today = new Date();
-    const daysLeft = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
-    if (daysLeft <= 3 && daysLeft >= 0 && goal.status === "active")
-      return daysLeft;
-    return null;
-  })();
+  const today = new Date().toISOString().split("T")[0];
 
-  const handleAddMilestone = async () => {
-    if (!newMs.trim()) return;
-    setAddingMs(true);
-    await onAddMilestone(goal._id, newMs);
-    setNewMs("");
-    setAddingMs(false);
+  const {
+    progress,
+    todayTarget,
+    doneToday,
+    onTrack,
+    deficit,
+    dayNum,
+    daysLeft,
+    isWarning,
+    isOverdue,
+  } = useMemo(() => {
+    const start = new Date(goal.startDate);
+    const now = new Date();
+    const daysPast = Math.max(1, Math.ceil((now - start) / 86400000));
+    const dayNum = Math.min(daysPast, goal.targetDays);
+    const daysLeft = Math.max(0, goal.targetDays - dayNum);
+
+    const isWarning = daysLeft <= 3 && daysLeft > 0 && goal.status === "active";
+    const isOverdue = daysLeft === 0 && goal.status === "active";
+
+    let progress = 0,
+      todayTarget = null,
+      doneToday = false,
+      onTrack = true,
+      deficit = 0;
+
+    if (goal.goalType === "numerical") {
+      const totalLogged =
+        goal.dailyTargets?.reduce((s, d) => s + (d.actual || 0), 0) || 0;
+      const totalTarget = goal.totalTarget || 1;
+
+      progress = Math.round((totalLogged / totalTarget) * 100);
+      todayTarget = goal.dailyTargets?.find((d) => d.date === today);
+      doneToday = todayTarget?.locked || false;
+
+      const expected =
+        goal.dailyTargets
+          ?.filter((d) => d.date <= today)
+          .reduce((s, d) => s + d.target, 0) || 0;
+
+      onTrack = totalLogged >= expected;
+      deficit = Math.max(0, expected - totalLogged);
+    } else {
+      const completed = goal.completedDays?.length || 0;
+      progress = Math.round((completed / goal.targetDays) * 100);
+      doneToday = goal.completedDays?.includes(today);
+      onTrack = completed >= dayNum;
+      deficit = Math.max(0, dayNum - completed);
+    }
+
+    return {
+      progress,
+      todayTarget,
+      doneToday,
+      onTrack,
+      deficit,
+      dayNum,
+      daysLeft,
+      isWarning,
+      isOverdue,
+    };
+  }, [goal, today]);
+
+  const triggerPulse = () => {
+    setPulse(true);
+    setTimeout(() => setPulse(false), 400);
+  };
+
+  const handleLogDay = async () => {
+    try {
+      setLogging(true);
+      triggerPulse();
+
+      if (goal.goalType === "numerical") {
+        await onLogDay(goal._id, Number(actualInput));
+        setActualInput("");
+        setShowLog(false);
+      } else {
+        await onLogDay(goal._id, 1);
+      }
+    } finally {
+      setLogging(false);
+    }
   };
 
   return (
-    <div className="bg-zinc-900 border border-white/10 rounded-2xl p-5 mb-4">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex-1 min-w-0 pr-4">
-          <h3 className="text-white font-bold text-base">{goal.title}</h3>
-          {goal.description && (
-            <p className="text-zinc-500 text-sm mt-0.5">{goal.description}</p>
-          )}
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {goal.status === "active" && (
-            <span
-              className="text-xs font-semibold px-2.5 py-1 rounded-full"
-              style={{
-                backgroundColor: "var(--color-primary)",
-                color: "white",
-                // opacity: 0.15,
-              }}
-            >
-              {goal.status}
-            </span>
-          )}
-          {goal.status === "completed" && (
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-green-500/15 text-green-400">
-              {goal.status}
-            </span>
-          )}
-          {goal.status === "paused" && (
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-zinc-700 text-zinc-400">
-              {goal.status}
-            </span>
-          )}
-          <button
-            onClick={() => onDelete(goal._id)}
-            className="text-zinc-700 hover:text-red-400 transition text-sm"
-          >
-            ✕
-          </button>
-        </div>
-      </div>
-
-      {/* Deadline warning */}
-      {deadlineWarning !== null && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2 mb-3">
-          <p className="text-red-400 text-xs font-semibold">
-            ⚠️{" "}
-            {deadlineWarning === 0
-              ? "Due today!"
-              : `${deadlineWarning} day${deadlineWarning > 1 ? "s" : ""} left`}
-          </p>
-        </div>
-      )}
-
-      {/* Progress */}
-      <div className="mb-3">
-        <div className="flex justify-between items-center mb-1.5">
-          <span className="text-xs text-zinc-500">
-            {total ? `${done}/${total} milestones` : "No milestones"}
-          </span>
-          <span
-            className="text-xs font-bold"
-            style={{ color: "var(--color-primary)" }}
-          >
-            {progress}%
-          </span>
-        </div>
-        <ProgressBar
-          value={progress}
-          color={goal.status === "completed" ? "green" : "primary"}
-        />
-      </div>
-
-      {/* Target days */}
-      <p className="text-xs text-zinc-600 mb-3">
-        {goal.targetDays} day goal · started {goal.startDate}
-      </p>
-
-      {/* Status buttons */}
-      <div className="flex gap-2 mb-3">
-        {["active", "paused", "completed"].map((s) => (
-          <button
-            key={s}
-            onClick={() => onUpdateStatus(goal._id, { status: s })}
-            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition ${
-              goal.status === s
-                ? "text-white"
-                : "bg-zinc-800 text-zinc-600 hover:text-white"
-            }`}
-            style={
-              goal.status === s
-                ? { backgroundColor: "var(--color-primary)" }
-                : {}
-            }
-          >
-            {s}
-          </button>
-        ))}
-      </div>
-
-      {/* Milestones toggle */}
-      <button
-        onClick={() => setShowMs(!showMs)}
-        className="text-xs text-zinc-500 transition mb-2"
-        style={{ color: "var(--color-primary)" }}
-        onMouseEnter={(e) => (e.target.style.opacity = "0.8")}
-        onMouseLeave={(e) => (e.target.style.opacity = "1")}
+    <>
+      <motion.div
+        layout
+        whileHover={{ y: -2 }}
+        onClick={() => !isArchived && navigate(`/goals/${goal._id}`)}
+        className={`group rounded-3xl border p-5 transition ${
+          isArchived
+            ? "border-zinc-200 bg-zinc-50/60 opacity-70 dark:border-white/10 dark:bg-white/[0.03]"
+            : "border-zinc-200 bg-white shadow-sm hover:border-[var(--color-primary)] dark:border-white/10 dark:bg-white/[0.03]"
+        }`}
       >
-        {showMs ? "▲ Hide" : "▼ Show"} milestones
-      </button>
+        {/* Header */}
+        <div className="flex justify-between mb-3">
+          <div>
+            <p className="text-xs tracking-widest text-zinc-500">
+              Day {dayNum} / {goal.targetDays}
+            </p>
 
-      {showMs && (
-        <div className="mt-2">
-          {/* Milestone list */}
-          {goal.milestones?.map((ms) => (
-            <MilestoneItem
-              key={ms._id}
-              milestone={ms}
-              onToggle={() => onToggleMilestone(goal._id, ms._id)}
-              onDelete={() => onDeleteMilestone(goal._id, ms._id)}
-            />
-          ))}
+            <h3 className="font-semibold text-zinc-900 dark:text-white">
+              {goal.title}
+            </h3>
 
-          {/* Add milestone */}
-          <div className="flex gap-2 mt-3">
-            <input
-              className="flex-1 bg-zinc-800 border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none transition"
-              style={{ borderColor: "var(--color-primary)" }}
-              onFocus={(e) =>
-                (e.target.style.borderColor = "var(--color-primary)")
-              }
-              onBlur={(e) => (e.target.style.borderColor = "")}
-              placeholder="Add a milestone..."
-              value={newMs}
-              onChange={(e) => setNewMs(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAddMilestone()}
-            />
-            <Button size="sm" onClick={handleAddMilestone} disabled={addingMs}>
-              Add
-            </Button>
+            {goal.description && (
+              <p className="text-xs text-zinc-500 truncate">
+                {goal.description}
+              </p>
+            )}
           </div>
+
+          {!isArchived && (
+            <span className="text-xs px-2 py-1 rounded-full bg-zinc-100 dark:bg-white/10">
+              {goal.status}
+            </span>
+          )}
         </div>
-      )}
-    </div>
+
+        {/* Status */}
+        {!isArchived && (
+          <div className="mb-3 text-xs font-medium">
+            {isOverdue ? (
+              <span className="text-red-400">⚠️ Overdue</span>
+            ) : isWarning ? (
+              <span className="text-yellow-400">⚠️ {daysLeft} days left</span>
+            ) : onTrack ? (
+              <span className="text-green-400">On track</span>
+            ) : (
+              <span className="text-yellow-400">Behind ({deficit})</span>
+            )}
+          </div>
+        )}
+
+        {/* Logging */}
+        {!isArchived && goal.status === "active" && (
+          <div className="mb-4" onClick={(e) => e.stopPropagation()}>
+            {goal.goalType === "numerical" ? (
+              <>
+                {doneToday ? (
+                  <button
+                    onClick={() => onUnlogDay(goal._id)}
+                    className="text-xs text-zinc-500 hover:text-zinc-900"
+                  >
+                    Undo log
+                  </button>
+                ) : showLog ? (
+                  <div className="flex gap-2">
+                    <input
+                      value={actualInput}
+                      onChange={(e) => setActualInput(e.target.value)}
+                      className="border rounded-lg px-3 py-1 text-sm w-24"
+                      placeholder={goal.unit}
+                    />
+                    <Button size="sm" onClick={handleLogDay}>
+                      Log
+                    </Button>
+                  </div>
+                ) : (
+                  <Button size="sm" onClick={() => setShowLog(true)}>
+                    Log today
+                  </Button>
+                )}
+              </>
+            ) : doneToday ? (
+              <button onClick={() => onUnlogDay(goal._id)}>Undo</button>
+            ) : (
+              <Button size="sm" onClick={handleLogDay}>
+                Mark done
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Progress */}
+        <div className="mb-3">
+          <ProgressBar value={progress} />
+        </div>
+
+        {/* Footer */}
+        <div
+          className="flex justify-between pt-3 border-t border-zinc-200 dark:border-white/10"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onDuplicate(goal._id)}
+            >
+              Duplicate
+            </Button>
+            {!isArchived && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setConfirmType("archive")}
+              >
+                Archive
+              </Button>
+            )}
+          </div>
+
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={() => setConfirmType("delete")}
+          >
+            Delete
+          </Button>
+        </div>
+      </motion.div>
+
+      <GoalConfirmModal
+        isOpen={!!confirmType}
+        onClose={() => setConfirmType(null)}
+        goal={goal}
+        type={confirmType}
+        onConfirm={() => {
+          if (confirmType === "delete") onDelete(goal._id);
+          if (confirmType === "archive") onArchive(goal._id);
+        }}
+      />
+    </>
   );
 }

@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 const MOODS = [
   { value: 1, emoji: "😔", label: "Rough" },
   { value: 2, emoji: "😐", label: "Meh" },
@@ -10,30 +12,53 @@ export { MOODS };
 
 export default function MoodSelector({ value, onChange }) {
   return (
-    <div className="flex gap-2">
-      {MOODS.map((mood) => (
-        <button
-          key={mood.value}
-          onClick={() => onChange(mood.value)}
-          className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-xl border transition ${
-            value === mood.value
-              ? "bg-zinc-800"
-              : "border-white/10 bg-zinc-800 hover:border-white/20"
-          }`}
-          style={
-            value === mood.value
-              ? {
-                  borderColor: "var(--color-primary)",
-                  backgroundColor: "var(--color-primary)",
-                  opacity: 0.1,
+    <div className="grid grid-cols-5 gap-2">
+      {MOODS.map((mood) => {
+        const isActive = value === mood.value;
+
+        return (
+          <motion.button
+            key={mood.value}
+            type="button"
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            animate={isActive ? { scale: [1, 1.04, 1] } : { scale: 1 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => onChange(mood.value)}
+            className={`
+              flex flex-col items-center justify-center gap-1.5
+              rounded-2xl border px-2 py-3 transition-all
+              ${
+                isActive
+                  ? "border-[rgba(var(--color-primary-rgb),0.35)] bg-[rgba(var(--color-primary-rgb),0.12)] shadow-[0_0_0_1px_rgba(var(--color-primary-rgb),0.12)]"
+                  : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-white/20"
+              }
+            `}
+          >
+            <span
+              className={`
+                text-xl transition-all
+                ${isActive ? "scale-110" : "opacity-80"}
+              `}
+            >
+              {mood.emoji}
+            </span>
+
+            <span
+              className={`
+                text-[11px] leading-none transition
+                ${
+                  isActive
+                    ? "font-medium text-[var(--color-primary)]"
+                    : "text-zinc-500"
                 }
-              : {}
-          }
-        >
-          <span className="text-xl">{mood.emoji}</span>
-          <span className="text-xs text-zinc-500">{mood.label}</span>
-        </button>
-      ))}
+              `}
+            >
+              {mood.label}
+            </span>
+          </motion.button>
+        );
+      })}
     </div>
   );
 }
